@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, shell } = require('electron');
+const { app, BrowserWindow, Menu, ipcMain, shell, dialog } = require('electron');
 const path = require('path');
 const scrapper = require('./scrapper');
 
@@ -7,7 +7,7 @@ if (require('electron-squirrel-startup')) {
   app.quit();
 }
 
-const createWindow = () => {
+app.whenReady().then(() => {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 800,
@@ -17,6 +17,7 @@ const createWindow = () => {
       nodeIntegration: true,
       contextIsolation: true,
     },
+  
   });
 
   // and load the index.html of the app.
@@ -24,30 +25,33 @@ const createWindow = () => {
 
   // Open the DevTools.
   mainWindow.webContents.openDevTools();
-};
-
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
-app.on('ready', createWindow);
-
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
-const menu = Menu.buildFromTemplate([
-  {
-    label: 'TEST',
-    click() {
-      scrapper()
+  
+  const menu = Menu.buildFromTemplate([
+    {
+      label: 'Выгрузки',
+      click() {
+        dialog.showOpenDialog(mainWindow, {
+          defaultPath: __dirname.replace('src', 'exports'),
+          properties: ['openFile']
+        }).then(result => {
+          if (result.canceled) {
+            console.log('Dialog was canceled')
+          } else {
+            const file = result.filePaths[0]
+            shell.openPath(file)
+            // console.log(file)
+          }
+        }).catch(err => {
+          console.log(err)
+        })
+      }
     }
-  }
-])
+  ])
+  Menu.setApplicationMenu(menu);
 
-Menu.setApplicationMenu(menu);
-
-
-
-
+  ipcMain.on('launch', async (event, storageName) => {
+    await scrapper(mainWindow, storageName)
+  })
 
 
 
@@ -55,12 +59,7 @@ Menu.setApplicationMenu(menu);
 
 
 
-
-
-
-
-
-
+});
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
@@ -76,5 +75,3 @@ app.on('activate', () => {
   }
 });
 
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and import them here.

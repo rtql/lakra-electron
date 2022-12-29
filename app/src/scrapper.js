@@ -1,18 +1,20 @@
 const puppeteer = require('puppeteer');
 const parser = require('node-html-parser');
-const userData = require('./user-data.json');
-// const chromium = require('chrome-aws-lambda');
+const userData = require('../config.json');
 const fs = require('fs');
-// const { headless } = require('chrome-aws-lambda');
 
-const scrapper = async () => {
-  const filePath = 'data.csv'
+
+const scrapper = async (mainWindow, storageName) => {
+  let counter = 0
+  const filePath = `exports/Экспорт склада ${storageName}.csv`
   const storages = {
-    okt: 'div.modal-body.listContainer > table > tbody > tr.ListFormRow.RefItem.active.success',
-    obuh: 'div.modal-body.listContainer > table > tbody > tr:nth-child(2)'
+    'Октябрьский': 'div.modal-body.listContainer > table > tbody > tr.ListFormRow.RefItem.active.success',
+    'Обухово': 'div.modal-body.listContainer > table > tbody > tr:nth-child(2)'
   };
+
   let stucked = 0
   fs.writeFileSync(filePath, "артикул\\ наименование\\ остаток\n", {encoding: 'utf8'})
+
   const lastStack = () => {
     // последнее значение в стеке
     const last = Array.from(stack)[stack.size - 1]
@@ -27,7 +29,7 @@ const scrapper = async () => {
         page.click(selectFirstGroup)])
         .then(stucked = 0)
     }
-    console.log('IN -----> ', stack, checkbox)
+    // console.log('IN -----> ', stack, checkbox)
     // проход по ветвям
     for (let index = 0; index < curRows; index++) {
       const select = index === 0? selectFirstGroup : `tbody > tr:nth-child(${index + 1})`
@@ -42,13 +44,16 @@ const scrapper = async () => {
       if (doc[0] == lastStack()) {
         await page.click(select)
         stucked = 0
-        console.log('clicked', doc[0])
+        // console.log('clicked', doc[0])
         // если ветка закрывалась, то удаляет из стека и добавляет в checkbox
         if (doc[1] === 'true') {
+          counter += 1
           checkbox.push(lastStack())
           stack.delete(lastStack())
+          mainWindow.webContents.send('update-counter', counter)
+          // console.log(counter)
         } 
-      console.log(stack, checkbox, 'OUT ----->')
+      // console.log(stack, checkbox, 'OUT ----->')
       }
     }
   }
@@ -71,18 +76,18 @@ const scrapper = async () => {
   }
 
   const checkContent = async () => {
-    console.log('stucked ====', stucked)
+    // console.log('stucked ====', stucked)
     await page.waitForTimeout(1400)
     page.addListener('response', async (response) => {
       if (response.url() === 'http://client.lakra.ru/ajax/req1c.php') {
         page.removeAllListeners('response')
-        console.log(await response.timing().receiveHeadersEnd)
+        // console.log(await response.timing().receiveHeadersEnd)
         }
       })
     try {
       const check = await page.$(selectContent, rows => rows)
       if (check != null) {
-        console.log('Забрал', check)
+        // console.log('Забрал', check)
         const content = parser.parse(await page.content())
         const table = content.querySelectorAll(selectContent)
         for (row of table) {
@@ -100,7 +105,8 @@ const scrapper = async () => {
 
   const result = async () => {
     await page.waitForTimeout(500)
-    console.log('READY', checkbox.length)
+    userData[storageName] = checkbox.length
+    fs.writeFileSync("config.json", JSON.stringify(userData))
   }
 
   const stack = new Set()
@@ -153,7 +159,7 @@ const scrapper = async () => {
   //   headless: true,
   //   ignoreHTTPSErrors: true,
   // })
-  const browser = await puppeteer.launch({headless: true});
+  const browser = await puppeteer.launch({headless: false});
   const page = await browser.newPage()
   await page.goto('http://client.lakra.ru/index.php', {waitUntil: 'networkidle2'})
   await page.waitForSelector('#auth > div > p:nth-child(3) > input')
@@ -165,10 +171,11 @@ const scrapper = async () => {
   await page.waitForTimeout(1000)
   await page.click('#userData_Storage > span.input-group-addon > input')
   await page.waitForTimeout(1000)
-  await page.click(storages.obuh) // здесь и ниже уазание склада
+  await page.click(storages[storageName]) // здесь и ниже уазание склада
   await page.waitForTimeout(1000)
   await page.keyboard.press('Enter')
   await page.waitForTimeout(1000)
+  await mainWindow.webContents.send('total-counter', userData[storageName])
   // основной цикл
   await updateStack() // для начального значений в стеке
   while (stack.size != 0) { 
@@ -179,5 +186,6 @@ const scrapper = async () => {
   await result() // oktyabrskiy - 137 folders
   await browser.close()
 }
+
 // scrapper()
 module.exports = scrapper

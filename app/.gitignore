@@ -89,4 +89,6 @@ typings/
 out/
 
 *.csv
-user-data.json
+config.json
+exports/
+test.js

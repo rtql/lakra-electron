@@ -7,9 +7,28 @@
     <script> src='./index.js'</script>
   </head>
   <body>
+
     <h1>💖 Hello World!</h1>
     <p>Welcome to your Electron application.</p>
-    <button id="submit">TEST</button>
+    <div>
+      <select id="select-storage">
+        <option >Выберите склад</option>
+        <option>Октябрьский</option>
+        <option>Обухово</option>
+      </select>
+    </div>
+    <div>
+      <button id="submit">Экспорт .csv</button>
+    </div>
+        <div>
+      <progress id="progress" max="100" value="0">
+      </progress>
+    </div>
+    <div id="div-progress">
+    </div>
+    
+    
+    
     <script src="index.js"></script>
   </body>
 </html>
