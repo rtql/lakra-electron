@@ -92,3 +92,4 @@ out/
 config.json
 exports/
 test.js
+*.gif

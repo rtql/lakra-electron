@@ -16,3 +16,7 @@ contextBridge.exposeInMainWorld('count', {
 contextBridge.exposeInMainWorld('total', {
   on: value => ipcRenderer.on('total-counter', value)
 })   
+
+contextBridge.exposeInMainWorld('end', {
+  on: end => ipcRenderer.on('end', end)
+})   
