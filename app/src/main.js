@@ -16,8 +16,7 @@ app.whenReady().then(() => {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: true,
       contextIsolation: true,
-    },
-  
+    }
   });
 
   // and load the index.html of the app.
@@ -31,33 +30,27 @@ app.whenReady().then(() => {
       label: 'Выгрузки',
       click() {
         dialog.showOpenDialog(mainWindow, {
-          defaultPath: __dirname.replace('src', 'exports'),
+          defaultPath: __dirname.replace('src', 'exports'), //wrong dir
           properties: ['openFile']
         }).then(result => {
           if (result.canceled) {
             console.log('Dialog was canceled')
           } else {
             const file = result.filePaths[0]
-            shell.openPath(file)
+            shell.openPath(file);
             // console.log(file)
           }
         }).catch(err => {
-          console.log(err)
+          console.log(err);
         })
       }
     }
   ])
   Menu.setApplicationMenu(menu);
 
-  ipcMain.on('launch', async (event, storageName) => {
+  ipcMain.on('start', async (event, storageName) => {
     await scrapper(mainWindow, storageName)
-  })
-
-
-
-
-
-
+  });
 
 });
 
@@ -74,4 +67,5 @@ app.on('activate', () => {
     createWindow();
   }
 });
+
 
