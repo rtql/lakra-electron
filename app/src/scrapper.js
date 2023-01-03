@@ -1,10 +1,11 @@
-const puppeteer = require('puppeteer');
 const parser = require('node-html-parser');
 const userData = require('./config.json');
 const fs = require('fs');
 const path = require('path');
+const {BrowserWindow, app} = require("electron");
+const puppeteer = require("puppeteer-core");
 
-const scrapper = async (mainWindow, storageName) => {
+const scrapper = async (page, mainWindow, storageName) => {
   let counter = 0
   const filePath = path.join(__dirname.replace('src', 'exports'), `Экспорт склада ${storageName}.csv`)
   const storages = {
@@ -110,11 +111,11 @@ const scrapper = async (mainWindow, storageName) => {
   const checkbox = [ // test box values(big groups)
   //   'Лк-00004557',
     // '90005243962',
-    '90005243839',
-    '90005243852',
-    '90005243972',
-    'Лк-00000949',
-    '90005243965',
+    // '90005243839',
+    // '90005243852',
+    // '90005243972',
+    // 'Лк-00000949',
+    // '90005243965',
   // 'ЛА-00000906', 'ЛА-00000907', 'ЛА-00000905', 'ЛА-00000904',
   // 'Лк-00004557', '90005243963', 'Лк-00000095', '90005243962',
   // '90005243856', '90005243857', '90005243919', 'Лк-00000014',
@@ -147,13 +148,32 @@ const scrapper = async (mainWindow, storageName) => {
   const selectGroup = 'tbody > tr.RefGroup'
   const selectFirstGroup = 'tbody > tr.ListFormRow.RefGroup.active.success'
   const selectContent = 'tr.RefItem'
-  const browser = await puppeteer.launch({headless: false});
-  const page = await browser.newPage();
-  await page.goto('http://client.lakra.ru/index.php', {waitUntil: 'networkidle2'});
+
+  // const browser = await pie.connect(app, puppeteer);
+ 
+  // const window = new BrowserWindow({
+  //   width: 800,
+  //   height: 600,
+  //   webPreferences: {
+  //     preload: path.join(__dirname, 'preload.js'),
+  //     nodeIntegration: true,
+  //     contextIsolation: true,
+  //   }
+  // });
+
+  // const url = "http://client.lakra.ru/index.php";
+  // await window.loadURL(url);
+  // const page = await pie.getPage(browser, window);
+
+
+  // const browser = await puppeteer.launch({headless: false});
+  // const page = await browser.newPage();
+  // await page.goto('http://client.lakra.ru/index.php', {waitUntil: 'networkidle2'});
   await page.waitForSelector('#auth > div > p:nth-child(3) > input');
   await page.type('#vcan_login', userData.login);
   await page.type('#vcan_password', userData.password);
   await page.click('#auth > div > p:nth-child(3) > input');
+  
   await page.waitForSelector('#mpTab_Goods > a');
   await page.click('#mpTab_Goods > a');
   await page.waitForTimeout(1000);
@@ -174,7 +194,32 @@ const scrapper = async (mainWindow, storageName) => {
   }
   await result(); // oktyabrskiy - 137 folders
   await mainWindow.webContents.send('end', 'end')
-  await browser.close();
+
+  window.destroy();
+  // await browser.close();
 }
 // scrapper()
+
+// const scrapper = async (app) => {
+//   // await pie.initialize(app);
+//   const browser = await pie.connect(app, puppeteer);
+ 
+//   const window = new BrowserWindow({
+//     width: 800,
+//     height: 600,
+//     webPreferences: {
+//       preload: path.join(__dirname, 'preload.js'),
+//       nodeIntegration: true,
+//       contextIsolation: true,
+//     }
+//   });
+
+//   const url = "https://example.com/";
+//   await window.loadURL(url);
+ 
+//   const page = await pie.getPage(browser, window);
+//   console.log(page.url());
+//   // window.destroy();
+// };
+
 module.exports = scrapper

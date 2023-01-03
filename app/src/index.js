@@ -23,21 +23,35 @@ total.on((event, value) => {
   document.getElementById('progress').max = max
   startTimer = Date.now();
 });
-
+const bar = document.getElementById('progress')
+const gif = document.getElementById('gif')
+let leave = 1
+//start
 count.on((event, counter) => {
-  
-  const max = document.getElementById('progress').max
+  bar.style.display = 'flex'
+  if (leave === 1) {
+    gif.style.display = 'flex'
+  }
+  const max = bar.max
   let progress = 100 * counter / max
   let estimatedTime = (Date.now() - startTimer) * (max - counter) / 1000 / progress
-  document.getElementById('progress').value = counter
+  bar.value = counter
   document.getElementById('%progress').innerText = `Обработано ${Math.floor(progress)}%`
   document.getElementById('timeprogress').innerText = 'Рассчитываю оставшееся время...'
   if (counter > 3) {
     document.getElementById('timeprogress').innerText = `Осталось примерно ${parseInt(estimatedTime / 60)} мин.` // ${Math.ceil(estimatedTime % 60)} сек.`
   }
   });
-
+//end
 end.on((event, end) => {
+  bar.style.display = 'none'
+  gif.style.display = 'none'
   document.getElementById('%progress').innerText = ''
   document.getElementById('timeprogress').innerText = `Склад ${storageName} готов`
+});
+
+document.getElementById('leave')
+.addEventListener('click', event => {
+  leave = 0
+  gif.style.display = 'none'
 });
