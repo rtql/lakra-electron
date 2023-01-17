@@ -50,8 +50,8 @@ end.on((event, end) => {
   document.getElementById('timeprogress').innerText = `Склад ${storageName} готов`
 });
 
-document.getElementById('leave')
-.addEventListener('click', event => {
-  leave = 0
-  gif.style.display = 'none'
-});
+// document.getElementById('leave')
+// .addEventListener('click', event => {
+//   leave = 0
+//   gif.style.display = 'none'
+// });
